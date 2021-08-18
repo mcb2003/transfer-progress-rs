@@ -1,4 +1,5 @@
 use std::{
+    fmt,
     io::{self, prelude::*},
     sync::{
         atomic::{AtomicU64, Ordering},
@@ -8,6 +9,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use bytesize::ByteSize;
 use progress_streams::ProgressReader;
 
 pub struct Transfer<R, W>
@@ -60,5 +62,32 @@ where
 
     pub fn speed(&self) -> u64 {
         (self.transferred() as f64 / self.running_time().as_secs_f64()).round() as u64
+    }
+}
+
+impl<R, W> fmt::Debug for Transfer<R, W>
+where
+    R: Read + Send + 'static,
+    W: Write + Send + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let transferred = ByteSize::b(self.transferred());
+        let speed = ByteSize::b(self.speed());
+        if f.alternate() {
+            // Use SI units
+        write!(f, "{:#} ({:#}/s)", transferred.to_string_as(true), speed.to_string_as(true))
+            } else {
+        write!(f, "{:#} ({:#}/s)", transferred, speed)
+    }
+    }
+}
+
+impl<R, W> fmt::Display for Transfer<R, W>
+where
+    R: Read + Send + 'static,
+    W: Write + Send + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
     }
 }
