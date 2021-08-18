@@ -3,7 +3,7 @@ use std::fmt;
 use std::{
     io::{self, prelude::*},
     sync::{
-        atomic::{AtomicU64, Ordering},
+        atomic::{AtomicU64, AtomicBool, Ordering},
         Arc,
     },
     thread,
@@ -14,13 +14,19 @@ use std::{
 use bytesize::ByteSize;
 use progress_streams::ProgressReader;
 
+#[derive(Default)]
+struct TransferState {
+    transferred: AtomicU64,
+    complete: AtomicBool,
+}
+
 pub struct Transfer<R, W>
 where
     R: Read + Send + 'static,
     W: Write + Send + 'static,
 {
     start_time: Instant,
-    transferred: Arc<AtomicU64>,
+    state: Arc<TransferState>,
     handle: thread::JoinHandle<io::Result<(R, W)>>,
 }
 
@@ -30,20 +36,21 @@ where
     W: Write + Send + 'static,
 {
     pub fn new(reader: R, mut writer: W) -> Self {
-        let transferred = Arc::new(AtomicU64::new(0));
-        let transferred_clone = Arc::clone(&transferred);
+        let state = Arc::new(TransferState::default());
+        let state_clone = Arc::clone(&state);
         let handle = thread::spawn(move || -> io::Result<(R, W)> {
             let mut reader = ProgressReader::new(reader, |bytes| {
                 // If someone would like to confirm the correctness of the ordering guarantees, that would
                 // be much appreciated.
-                transferred_clone.fetch_add(bytes as u64, Ordering::Release);
+                state_clone.transferred.fetch_add(bytes as u64, Ordering::Release);
             });
             io::copy(&mut reader, &mut writer)?;
+            state_clone.complete.store(true, Ordering::Release);
             Ok((reader.into_inner(), writer))
         });
         Self {
             start_time: Instant::now(),
-            transferred,
+            state,
             handle,
         }
     }
@@ -52,10 +59,16 @@ where
         self.handle.join().unwrap()
     }
 
+pub fn is_complete(&self) -> bool {
+        // If someone would like to confirm the correctness of the ordering guarantees, that would
+        // be much appreciated.
+        self.state.complete.load(Ordering::Acquire)
+    }
+
     pub fn transferred(&self) -> u64 {
         // If someone would like to confirm the correctness of the ordering guarantees, that would
         // be much appreciated.
-        self.transferred.load(Ordering::Acquire)
+        self.state.transferred.load(Ordering::Acquire)
     }
 
     pub fn running_time(&self) -> Duration {
