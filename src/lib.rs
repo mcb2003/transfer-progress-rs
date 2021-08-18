@@ -137,6 +137,18 @@ where
             size,
         }
     }
+
+    pub fn eta(&self) -> Option<Duration> {
+        // Cache this so we don't have to perform an atomic access twice
+        let transferred = self.inner.transferred();
+        if transferred == 0 {
+            return None;
+        }
+        let remaining = self.size - transferred;
+        let elapsed = self.running_time().as_secs_f64();
+        let eta = (elapsed / transferred as f64) * remaining as f64;
+        Some(Duration::from_secs_f64(eta))
+    }
 }
 
 impl<R, W> std::ops::Deref for SizedTransfer<R, W>
