@@ -5,6 +5,7 @@ use std::{
         Arc,
     },
     thread,
+    time::{Duration, Instant},
 };
 
 use progress_streams::ProgressReader;
@@ -14,6 +15,7 @@ where
     R: Read + Send + 'static,
     W: Write + Send + 'static,
 {
+    start_time: Instant,
     transferred: Arc<AtomicU64>,
     handle: thread::JoinHandle<io::Result<(R, W)>>,
 }
@@ -36,6 +38,7 @@ where
             Ok((reader.into_inner(), writer))
         });
         Self {
+            start_time: Instant::now(),
             transferred,
             handle,
         }
@@ -49,5 +52,13 @@ where
         // If someone would like to confirm the correctness of the ordering guarantees, that would
         // be much appreciated.
         self.transferred.load(Ordering::Acquire)
+    }
+
+    pub fn running_time(&self) -> Duration {
+        self.start_time.elapsed()
+    }
+
+    pub fn speed(&self) -> u64 {
+        (self.transferred() as f64 / self.running_time().as_secs_f64()).round() as u64
     }
 }
