@@ -1,0 +1,10 @@
+[package]
+name = "transfer-progress"
+version = "0.1.0"
+description = "Easily monitor the transfer of bytes from a reader to a writer"
+authors = ["Michael Connor Buchan <mikey@blindcomputing.org"]
+license = "MIT/Apache-2.0"
+edition = "2018"
+
+[dependencies]
+progress-streams = "1.1.0"
