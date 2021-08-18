@@ -138,9 +138,9 @@ where
         }
     }
 
-pub fn fraction_transferred(&self) -> f64 {
-    self.transferred() as f64 / self.size as f64
-}
+    pub fn fraction_transferred(&self) -> f64 {
+        self.transferred() as f64 / self.size as f64
+    }
 
     pub fn eta(&self) -> Option<Duration> {
         // Cache this so we don't have to perform an atomic access twice
@@ -164,5 +164,46 @@ where
 
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+#[cfg(feature = "bytesize")]
+impl<R, W> fmt::Debug for SizedTransfer<R, W>
+where
+    R: Read + Send + 'static,
+    W: Write + Send + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let percentage = self.fraction_transferred() * 100.0;
+        let transferred = ByteSize::b(self.transferred());
+        let size = ByteSize::b(self.size);
+        let speed = ByteSize::b(self.speed());
+        if f.alternate() {
+            write!(
+                f,
+                "{:.1} % ({} of {}, {}/s)",
+                percentage, transferred, size, speed
+            )
+        } else {
+            write!(
+                f,
+                "{:.1} % ({} of {}, {}/s)",
+                percentage,
+                transferred.to_string_as(true),
+                size.to_string_as(true),
+                speed.to_string_as(true)
+            )
+        }
+    }
+}
+
+#[cfg(feature = "bytesize")]
+impl<R, W> fmt::Display for SizedTransfer<R, W>
+where
+    R: Read + Send + 'static,
+    W: Write + Send + 'static,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
     }
 }
