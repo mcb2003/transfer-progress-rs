@@ -116,3 +116,37 @@ where
         fmt::Debug::fmt(self, f)
     }
 }
+
+pub struct SizedTransfer<R, W>
+where
+    R: Read + Send + 'static,
+    W: Write + Send + 'static,
+{
+    inner: Transfer<R, W>,
+    size: u64,
+}
+
+impl<R, W> SizedTransfer<R, W>
+where
+    R: Read + Send + 'static,
+    W: Write + Send + 'static,
+{
+    pub fn new(reader: R, writer: W, size: u64) -> Self {
+        Self {
+            inner: Transfer::new(reader, writer),
+            size,
+        }
+    }
+}
+
+impl<R, W> std::ops::Deref for SizedTransfer<R, W>
+where
+    R: Read + Send + 'static,
+    W: Write + Send + 'static,
+{
+    type Target = Transfer<R, W>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
