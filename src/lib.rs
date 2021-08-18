@@ -1,5 +1,6 @@
+#[cfg(feature = "bytesize")]
+use std::fmt;
 use std::{
-    fmt,
     io::{self, prelude::*},
     sync::{
         atomic::{AtomicU64, Ordering},
@@ -9,6 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[cfg(feature = "bytesize")]
 use bytesize::ByteSize;
 use progress_streams::ProgressReader;
 
@@ -65,6 +67,7 @@ where
     }
 }
 
+#[cfg(feature = "bytesize")]
 impl<R, W> fmt::Debug for Transfer<R, W>
 where
     R: Read + Send + 'static,
@@ -75,13 +78,19 @@ where
         let speed = ByteSize::b(self.speed());
         if f.alternate() {
             // Use SI units
-        write!(f, "{:#} ({:#}/s)", transferred.to_string_as(true), speed.to_string_as(true))
-            } else {
-        write!(f, "{:#} ({:#}/s)", transferred, speed)
-    }
+            write!(
+                f,
+                "{:#} ({:#}/s)",
+                transferred.to_string_as(true),
+                speed.to_string_as(true)
+            )
+        } else {
+            write!(f, "{:#} ({:#}/s)", transferred, speed)
+        }
     }
 }
 
+#[cfg(feature = "bytesize")]
 impl<R, W> fmt::Display for Transfer<R, W>
 where
     R: Read + Send + 'static,

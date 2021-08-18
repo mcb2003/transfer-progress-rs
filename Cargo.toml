@@ -6,5 +6,9 @@ authors = ["Michael Connor Buchan <mikey@blindcomputing.org"]
 license = "MIT/Apache-2.0"
 edition = "2018"
 
+[features]
+default = ["bytesize"]
+
 [dependencies]
+bytesize = {version = "1.1.0", optional = true}
 progress-streams = "1.1.0"
