@@ -138,6 +138,10 @@ where
         }
     }
 
+pub fn fraction_transferred(&self) -> f64 {
+    self.transferred() as f64 / self.size as f64
+}
+
     pub fn eta(&self) -> Option<Duration> {
         // Cache this so we don't have to perform an atomic access twice
         let transferred = self.inner.transferred();
