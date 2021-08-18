@@ -138,6 +138,10 @@ where
         }
     }
 
+    pub fn finish(self) -> io::Result<(R, W)> {
+        self.inner.finish()
+    }
+
     pub fn fraction_transferred(&self) -> f64 {
         self.transferred() as f64 / self.size as f64
     }
