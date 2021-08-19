@@ -1,6 +1,6 @@
 [package]
 name = "transfer-progress"
-version = "0.1.0"
+version = "0.1.1"
 description = "Easily monitor the transfer of bytes from a reader to a writer"
 readme = "README.md"
 authors = ["Michael Connor Buchan <mikey@blindcomputing.org"]
