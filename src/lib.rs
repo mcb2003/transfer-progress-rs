@@ -233,6 +233,44 @@ where
         }
     }
 
+    /// Returns the total size (in bytes) of the transfer, as specified when calling
+    /// [`new`][SizedTransfer::new].
+    /// # Example
+    /// ```no_run
+    /// use transfer_progress::SizedTransfer;
+    /// use std::fs::File;
+    /// use std::io::Read;
+    /// # fn main() -> std::io::Result<()> {
+    /// let reader = File::open("file1.txt")?.take(1024); // Bytes
+    /// let writer = File::create("file2.txt")?;
+    /// let transfer = SizedTransfer::new(reader, writer, 1024);
+    /// assert_eq!(transfer.size(), 1024);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn size(&self) -> u64 {
+        self.size
+    }
+
+    /// Returns the number of bytes remaining.
+    /// # Example
+    /// ```no_run
+    /// use transfer_progress::SizedTransfer;
+    /// use std::fs::File;
+    /// use std::io::Read;
+    /// let reader = File::open("file1.txt")?.take(1024); // Bytes
+    /// let writer = File::create("file2.txt")?;
+    /// let transfer = SizedTransfer::new(reader, writer, 1024);
+    /// while !transfer.is_complete() {
+    /// println!("{} bytes remaining", transfer.remaining());
+    /// std::thread::sleep(std::time::Duration::from_secs(1));
+    /// }
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn remaining(&self) -> u64 {
+        self.size - self.inner.transferred()
+    }
+
     /// Consumes the `SizedTransfer`, blocking until the transfer is complete.
     ///
     /// If the transfer was successful, returns `Ok(reader, writer)`, otherwise returns
