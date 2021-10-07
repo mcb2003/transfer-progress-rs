@@ -1,6 +1,6 @@
 [package]
 name = "transfer-progress"
-version = "0.1.1"
+version = "0.1.2"
 description = "Easily monitor the transfer of bytes from a reader to a writer"
 readme = "README.md"
 authors = ["Michael Connor Buchan <mikey@blindcomputing.org"]
@@ -12,5 +12,5 @@ edition = "2018"
 default = ["bytesize"]
 
 [dependencies]
-bytesize = {version = "1.1.0", optional = true}
+bytesize = { version = "1.1.0", optional = true }
 progress-streams = "1.1.0"
